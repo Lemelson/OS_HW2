@@ -1,0 +1,25 @@
+./main 5 2
+
+Main process PID : 103594
+Program successfully started!.
+Started field:
+00210
+00000
+01020
+00000
+00000
+Battle Field successfully created.
+-1-1103598103596-1
+-1-1-1-1-1
+-1103595-1103597-1
+-1-1-1-1-1
+-1-1-1-1-1
+Cur id : 103598, team : 2 prepairs for shooting 
+Процесс с id : 103598, убил процесс с id : 103596
+Cur id : 103597, team : 2 prepairs for shooting 
+Процесс с id : 103597, убил процесс с id : 103595
+Proc with id : 103596 finished
+Proc with id : 103595 finished
+Proc with id : 103598 finished
+Proc with id : 103597 finished
+Победила Тарантерия!!!!

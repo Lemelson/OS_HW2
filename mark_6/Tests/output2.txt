@@ -1,0 +1,61 @@
+Main process PID : 118387
+Program successfully started!.
+Started field:
+0120000000
+2000000000
+0000200000
+0000000002
+0001000010
+0000000110
+0000000000
+0000002000
+0000000000
+0000000000
+Battle Field successfully created.
+-1118390118394-1-1-1-1-1-1-1
+118393-1-1-1-1-1-1-1-1-1
+-1-1-1-1118396-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1118395
+-1-1-1118392-1-1-1-1118388-1
+-1-1-1-1-1-1-1118391118389-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1118397-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+Cur id : 118392, team : 1 prepairs for shooting 
+Процесс с id : 118392, убил процесс с id : 118393
+Cur id : 118397, team : 2 prepairs for shooting 
+Процесс с id : 118397 уничтожил пустую клетку(промазал)
+Cur id : 118389, team : 1 prepairs for shooting 
+Процесс с id : 118389 уничтожил пустую клетку(промазал)
+Cur id : 118394, team : 2 prepairs for shooting 
+Процесс с id : 118394 уничтожил пустую клетку(промазал)
+Proc with id : 118393 finished
+Cur id : 118396, team : 2 prepairs for shooting 
+Процесс с id : 118396 уничтожил пустую клетку(промазал)
+Cur id : 118388, team : 1 prepairs for shooting 
+Процесс с id : 118388, убил процесс с id : 118394
+Cur id : 118391, team : 1 prepairs for shooting 
+Процесс с id : 118391 уничтожил пустую клетку(промазал)
+Cur id : 118390, team : 1 prepairs for shooting 
+Процесс с id : 118390, убил процесс с id : 118395
+Proc with id : 118395 finished
+Cur id : 118392, team : 1 prepairs for shooting 
+Процесс с id : 118392 уничтожил пустую клетку(промазал)
+Cur id : 118397, team : 2 prepairs for shooting 
+Процесс с id : 118397 уничтожил пустую клетку(промазал)
+Cur id : 118389, team : 1 prepairs for shooting 
+Процесс с id : 118389, убил процесс с id : 118396
+Proc with id : 118394 finished
+Proc with id : 118396 finished
+Cur id : 118388, team : 1 prepairs for shooting 
+Процесс с id : 118388 уничтожил пустую клетку(промазал)
+Cur id : 118391, team : 1 prepairs for shooting 
+Процесс с id : 118391, убил процесс с id : 118397
+Proc with id : 118390 finished
+Proc with id : 118392 finished
+Proc with id : 118397 finished
+Proc with id : 118389 finished
+Proc with id : 118388 finished
+Proc with id : 118391 finished
+Победила Анчуария!!!!

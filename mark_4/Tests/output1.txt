@@ -1,0 +1,61 @@
+Main process PID : 398
+Program successfully started!.
+Started field:
+0201000000
+0222100000
+0000000000
+0000000200
+0000010000
+0000000000
+0001000000
+0000000000
+0000000000
+0000000010
+Battle Field successfully created.
+-1408-1402-1-1-1-1-1-1
+-1411409410403-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1407-1-1
+-1-1-1-1-1406-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1405-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1404-1
+Cur id : 408, team : 2 prepairs for shooting 
+Процесс с id : 408 уничтожил п�стую клетку(пром�зал)
+Cur id : 404, team : 1 prepairs for shooting 
+Процесс с id : 404, убил процесс с id : 407
+Cur id : 402, team : 1 prepairs for shooting 
+Процесс с id : 402 уничтожил пустую кл�тку(промазал)
+Cur id : 405, team : 1 prepairs for shooting 
+Процесс с id : 405, убил процесс с id : 408
+Cur id : 409, team : 2 prepairs for shooting 
+Процесс с id : 409 уничтожил пустую клетку(промазал)
+Cur id : 403, team : 1 prepairs for shooting 
+Процесс с id : 403 уничтожил пустую клетку(промазал)
+Proc with id : 407 finished
+Cur id : 410, team : 2 prepairs for shooting 
+Процесс с id : 410 уничтожил пустую клетку(промазал)
+Cur id : 406, team : 1 prepairs for shooting 
+Процесс с id : 406, убил процесс с id : 409
+Cur id : 411, team : 2 prepairs for shooting 
+Процесс с id : 411 уничтожил пустую клетку(промазал)
+Proc with id : 408 finished
+Cur id : 404, team : 1 prepairs for shooting 
+Процесс с id : 404 уничтожил пустую клетку(промазал)
+Cur id : 402, team : 1 prepairs for shooting 
+Процесс с id : 402, убил процесс с id : 410
+Cur id : 405, team : 1 prepairs for shooting 
+Процесс с id : 405 уничтожил пустую клетку(промазал)
+Proc with id : 409 finished
+Cur id : 403, team : 1 prepairs for shooting 
+Процесс с id : 403, убил процесс с id : 411
+Proc with id : 410 finished
+Proc with id : 406 finished
+Proc with id : 411 finished
+Proc with id : 404 finished
+Proc with id : 402 finished
+Proc with id : 405 finished
+Proc with id : 403 finished
+Победила Анчуари�!!!!

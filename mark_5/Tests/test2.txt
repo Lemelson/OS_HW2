@@ -1,0 +1,49 @@
+./main 10 3
+
+Main process PID : 103649
+Program successfully started!.
+Started field:
+0000000000
+0000200000
+0001000000
+0000000000
+0000001000
+0200000000
+0000000000
+0000000000
+0000000021
+0000000000
+Battle Field successfully created.
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1103653-1-1-1-1-1
+-1-1-1103651-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1103650-1-1-1
+-1103655-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1-1-1
+-1-1-1-1-1-1-1-1103654103652
+-1-1-1-1-1-1-1-1-1-1
+Cur id : 103655, team : 2 prepairs for shooting 
+Процесс с id : 103655 уничтожил пустую клетку(промазал)
+Cur id : 103650, team : 1 prepairs for shooting 
+Процесс с id : 103650, убил процесс с id : 103653
+Cur id : 103651, team : 1 prepairs for shooting 
+Процесс с id : 103651 уничтожил пустую клетку(промазал)
+Cur id : 103654, team : 2 prepairs for shooting 
+Процесс с id : 103654 уничтожил пустую клетку(промазал)
+Cur id : 103652, team : 1 prepairs for shooting 
+Процесс с id : 103652, убил процесс с id : 103654
+Proc with id : 103653 finished
+Cur id : 103655, team : 2 prepairs for shooting 
+Процесс с id : 103655 уничтожил пустую клетку(промазал)
+Cur id : 103650, team : 1 prepairs for shooting 
+Процесс с id : 103650 уничтожил пустую клетку(промазал)
+Cur id : 103651, team : 1 prepairs for shooting 
+Процесс с id : 103651, убил процесс с id : 103655
+Proc with id : 103654 finished
+Proc with id : 103652 finished
+Proc with id : 103655 finished
+Proc with id : 103650 finished
+Proc with id : 103651 finished
+Победила Анчуария!!!!

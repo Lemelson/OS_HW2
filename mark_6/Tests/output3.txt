@@ -1,0 +1,25 @@
+Main process PID : 118469
+Program successfully started!.
+Started field:
+00000
+00120
+00000
+00001
+20000
+Battle Field successfully created.
+-1-1-1-1-1
+-1-1118470118472-1
+-1-1-1-1-1
+-1-1-1-1118471
+118473-1-1-1-1
+Cur id : 118473, team : 2 prepairs for shooting 
+Процесс с id : 118473, убил процесс с id : 118471
+Cur id : 118470, team : 1 prepairs for shooting 
+Процесс с id : 118470, убил процесс с id : 118472
+Proc with id : 118472 finished
+Proc with id : 118471 finished
+Cur id : 118473, team : 2 prepairs for shooting 
+Процесс с id : 118473, убил процесс с id : 118470
+Proc with id : 118470 finished
+Proc with id : 118473 finished
+Победила Тарантерия!!!!

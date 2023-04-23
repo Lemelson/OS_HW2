@@ -1,0 +1,25 @@
+Main process PID : 171
+Program successfully started!.
+Started field:
+2000
+0000
+0000
+1102
+Battle Field successfully created.
+178-1-1-1
+-1-1-1-1
+-1-1-1-1
+176175-1177
+Cur id : 178, team : 2 prepairs for shooting 
+Процесс с id : 178, убил процесс с id : 175
+Cur id : 176, team : 1 prepairs for shooting 
+Процесс с id : 176, убил процесс с id : 177
+Proc with id : 175 finished
+Proc with id : 177 finished
+Cur id : 178, team : 2 prepairs for shooting 
+Процесс с id : 178 уничтожил пустую клетку(промазал)
+Cur id : 176, team : 1 prepairs for shooting 
+Процесс с id : 176, убил процесс с id : 178
+Proc with id : 178 finished
+Proc with id : 176 finished
+Победила Анчуари�!!!!

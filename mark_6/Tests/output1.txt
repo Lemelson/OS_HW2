@@ -1,0 +1,31 @@
+Main process PID : 118361
+Program successfully started!.
+Started field:
+00000
+02000
+00000
+10002
+00001
+Battle Field successfully created.
+-1-1-1-1-1
+-1118365-1-1-1
+-1-1-1-1-1
+118362-1-1-1118364
+-1-1-1-1118363
+Cur id : 118364, team : 2 prepairs for shooting 
+Процесс с id : 118364 уничтожил пустую клетку(промазал)
+Cur id : 118365, team : 2 prepairs for shooting 
+Процесс с id : 118365 уничтожил пустую клетку(промазал)
+Cur id : 118363, team : 1 prepairs for shooting 
+Процесс с id : 118363, убил процесс с id : 118364
+Cur id : 118362, team : 1 prepairs for shooting 
+Процесс с id : 118362 уничтожил пустую клетку(промазал)
+Proc with id : 118364 finished
+Cur id : 118365, team : 2 prepairs for shooting 
+Процесс с id : 118365 уничтожил пустую клетку(промазал)
+Cur id : 118363, team : 1 prepairs for shooting 
+Процесс с id : 118363, убил процесс с id : 118365
+Proc with id : 118362 finished
+Proc with id : 118365 finished
+Proc with id : 118363 finished
+Победила Анчуария!!!!
