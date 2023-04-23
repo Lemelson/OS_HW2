@@ -12,6 +12,8 @@
 #include <sys/mman.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
 
 struct Cell {
     int status; // -1 - dead, 0 - empty(alive), 1 - left Team, 2 - right Team.
@@ -20,16 +22,10 @@ struct Cell {
 
 struct Cell *field; // Массив структур.
 int field_fd;
-const char *fieldName = "field";
 
-const char *printData_sem = "/printData-semaphore";
-sem_t *printData; // Используется для корреткного вывода информации(чтобы только один поток мог печатать что0то в какой-то момент времени).
-
-const char *leftMortars_sem = "/Anchuriya(left team)-semaphore";
-sem_t *leftMortars;
-
-const char *rightMortars_sem = "/Taranteriya(right team)-semaphore";
-sem_t *rightMortars;
+int printDataID; // Используется для корреткного вывода информации(чтобы только один поток мог печатать что0то в какой-то момент времени).
+int leftMortarsID;
+int rightMortarsID;
 
 int fork_() {
     int result = fork();
@@ -42,6 +38,19 @@ int fork_() {
 
 // Заполняет поле пустыми клетками(пока без орудий).
 void initField(int N) {
+    key_t shm_key = ftok("/tmp", 1200);
+    field_fd  = shmget(shm_key, sizeof(struct Cell), 0666 | IPC_CREAT);
+    if (field_fd == -1) {
+        perror("shmget error");
+        exit(-1);
+    }
+
+    field = shmat(field_fd, NULL, 0);
+    if (field == (void*)-1) {
+        perror("shmat error");
+        exit(-1);
+    }
+    
     field = malloc(N * N * sizeof(struct Cell));
     for (int i = 0; i < N * N; i++) {
         field[i].status = 0;
@@ -67,86 +76,45 @@ int fillField(int N, int status) {
 }
 
 void initPrintData() {
-    if((printData = sem_open(printData_sem, O_CREAT, 0666, 1)) == SEM_FAILED) {
-        perror("sem_open: Can't create printData semaphore");
-        exit(-1);
-    };
+    key_t sem_key1 = ftok("/tmp", 1201);
+    printDataID = semget(sem_key1, 1, IPC_CREAT | 0666);
+    if (printDataID < 0) {
+        perror("Error with creation printData semaphore: ");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void initLeftMortars() {
-    if((leftMortars = sem_open(leftMortars_sem, O_CREAT, 0666, 1)) == SEM_FAILED) {
-        perror("sem_open: Can't create leftMortars semaphore");
-        exit(-1);
-    };
+    key_t sem_key2 = ftok("/tmp", 1202);
+    leftMortarsID = semget(sem_key2, 1, IPC_CREAT | 0666);
+    if (leftMortarsID < 0) {
+        perror("Error with creation leftMortar semaphore: ");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void initRightMortars() {
-    if((rightMortars = sem_open(rightMortars_sem, O_CREAT, 0666, 1)) == SEM_FAILED) {
-        perror("sem_open: Can't create rightMortars semaphore");
-        exit(-1);
-    };
-}
-
-// Добавление поля в разделяемую память.
-void addFieldToSharedMemory(int N) {
-    int fd;
-    if ((fd = shm_open(fieldName, O_CREAT|O_RDWR, 0666)) == -1 ) {
-        perror("Field shm_open Error.");
-        exit(-1);
+    key_t sem_key3 = ftok("/tmp", 1203);
+    rightMortarsID = semget(sem_key3, 1, IPC_CREAT | 0666);
+    if (rightMortarsID < 0) {
+        perror("Error with creation rightMortar semaphore: ");
+        exit(EXIT_FAILURE);
     }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    if (ftruncate(fd, size) == -1) {
-        perror("Error with ftruncate");
-        exit(-1);
-    }
-    
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
-    memcpy(addr, field, size);
-    if (close(fd) == -1) {
-        perror("Error with closing arr_fd.");
-        exit(-1);
-    }
-    
-    printf("Battle Field successfully created.\n");
 }
 
 // Если игра еще идет, то возвращает 0, если победила левая команда 1, а если правая 2, если были уничтожены оба -1
 int gameResult(int N) {
-    int fd = shm_open(fieldName, O_RDWR, 0666);
-    if (fd == -1) {
-        perror("Error with opening field shm_open.");
-        exit(-1);
-    }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
     bool leftAlive = false, rightAlive = false;
     for (int i = 0; i < N * N; ++i) {
-        if (addr[i].pid == -1) {
+        if (field[i].pid == -1) {
             continue;
         }
         
-        if (addr[i].status == 1) {
+        if (field[i].status == 1) {
             leftAlive = true;
-        } else if (addr[i].status == 2) {
+        } else if (field[i].status == 2) {
             rightAlive = true;
         }
-    }
-    
-    if (close(fd) == -1) {
-        perror("Error with closing acces to shared memory\n.");
-        exit(-1);
     }
     
     if (leftAlive == false && rightAlive == false) {
@@ -164,42 +132,23 @@ int gameResult(int N) {
     return 0;
 }
 
-void closeAll() {
-    if(sem_close(leftMortars) == -1) {
-        perror("sem_close: Incorrect close of leftMortars semaphore");
-        exit(-1);
-    }
-    
-    if(sem_close(rightMortars) == -1) {
-        perror("sem_close: Incorrect close of rightMortars semaphore");
-        exit(-1);
-    }
-    
-    if(sem_close(printData) == -1) {
-        perror("sem_close: Incorrect close of printData semaphore");
-        exit(-1);
-    }
-}
-
 void unlinkAll() {
-    if(shm_unlink(fieldName) == -1) {
-        printf("Shared memory is absent\n");
-        perror("shm_unlink");
-    }
-
-    if(sem_unlink(leftMortars_sem) == -1) {
-        perror("leftMortars sem_unlink");
-    }
-
-    if(sem_unlink(rightMortars_sem) == -1) {
-        perror("rightMortars sem_unlink");
-    }   
-
-    if(sem_unlink(printData_sem) == -1) {
-        perror("printData sem_unlink");
+    if (semctl(printDataID  , 0, IPC_RMID) == -1) {
+        perror("semctl");
+        exit(1);
     }
     
-    closeAll();
+    if (semctl(leftMortarsID, 0, IPC_RMID) == -1) {
+        perror("semctl");
+        exit(1);
+    }
+    
+    if (semctl(rightMortarsID, 0, IPC_RMID) == -1) {
+        perror("semctl");
+        exit(1);
+    }
+    
+    shmdt(field);
 }
 
 int main(int argc, char *argv[])
@@ -228,7 +177,6 @@ int main(int argc, char *argv[])
             my_array[i] = fillField(N, 2); // правая команда.
         }
     }
-    addFieldToSharedMemory(N);
     
     printf("Сгенерированное поле:\n");
     for (int i = 0; i < N; ++i) {

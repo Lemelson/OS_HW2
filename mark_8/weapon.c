@@ -12,6 +12,8 @@
 #include <sys/mman.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
 
 struct Cell {
     int status; // -1 - dead, 0 - empty(alive), 1 - left Team, 2 - right Team.
@@ -20,98 +22,69 @@ struct Cell {
 
 struct Cell *field; // Массив структур.
 int field_fd;
-const char *fieldName = "field";
 
-const char *printData_sem = "/printData-semaphore";
-sem_t *printData; // Используется для корреткного вывода информации(чтобы только один поток мог печатать что0то в какой-то момент времени).
-
-const char *leftMortars_sem = "/Anchuriya(left team)-semaphore";
-sem_t *leftMortars;
-
-const char *rightMortars_sem = "/Taranteriya(right team)-semaphore";
-sem_t *rightMortars;
+int printDataID; // Используется для корреткного вывода информации(чтобы только один поток мог печатать что0то в какой-то момент времени).
+int leftMortarsID;
+int rightMortarsID;
 
 void loadPrintData() {
-    if((printData = sem_open(printData_sem, 0)) == SEM_FAILED) {
-        perror("sem_open: Can't create printData semaphore");
-        exit(-1);
-    };
+    key_t sem_key1 = ftok("/tmp", 1201);
+    printDataID = semget(sem_key1, 1, 0666);
+    if (printDataID < 0) {
+        perror("Error with opening printData semaphore: ");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void loadLeftMortars() {
-    if((leftMortars = sem_open(leftMortars_sem, 0)) == SEM_FAILED) {
-        perror("sem_open: Can't create leftMortars semaphore");
-        exit(-1);
-    };
+    key_t sem_key2 = ftok("/tmp", 1202);
+    leftMortarsID = semget(sem_key2, 1, 0666);
+    if (leftMortarsID < 0) {
+        perror("Error with opening leftMortar semaphore: ");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void loadRightMortars() {
-    if((rightMortars = sem_open(rightMortars_sem, 0)) == SEM_FAILED) {
-        perror("sem_open: Can't create rightMortars semaphore");
-        exit(-1);
-    };
+    key_t sem_key3 = ftok("/tmp", 1203);
+    rightMortarsID = semget(sem_key3, 1, 0666);
+    if (rightMortarsID < 0) {
+        perror("Error with opening rightMortar semaphore: ");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void wait_semaphore(int sem_id) {
+    struct sembuf sem_op;
+    sem_op.sem_num = 0;
+    sem_op.sem_op = 0;
+    sem_op.sem_flg = 0;
+    semop(sem_id, &sem_op, 1);
+    semctl(sem_id, 0, SETVAL, 1);
 }
 
 // 0 false, 1 true
 int isExist(int N, int coord) {
-    //shm_unlink(field);
-    int fd = shm_open(fieldName, O_RDWR, 0666);
-    if (fd == -1) {
-        perror("Error with opening field shm_open.");
-        exit(-1);
-    }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
     int exist = 1;
-    if (addr[coord].status == -1) {
+    if (field[coord].status == -1) {
         exist = 0;
     }
-
-    if (close(fd) == -1) {
-        perror("Error with closing acces to shared memory\n.");
-        exit(-1);
-    }
-    
     return exist;
 }
 
 // Если игра еще идет, то возвращает 0, если победила левая команда 1, а если правая 2, если были уничтожены оба -1
 int gameResult(int N) {
-    int fd = shm_open(fieldName, O_RDWR, 0666);
-    if (fd == -1) {
-        perror("Error with opening field shm_open.");
-        exit(-1);
-    }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
     bool leftAlive = false, rightAlive = false;
     for (int i = 0; i < N * N; ++i) {
-        if (addr[i].status == -1 || addr[i].status == 0) {
+        if (field[i].status == -1 || field[i].status == 0) {
             continue;
         }
         
-        if (addr[i].status == 1) {
+        if (field[i].status == 1) {
             leftAlive = true;
-        } else if (addr[i].status == 2) {
+        } else if (field[i].status == 2) {
             rightAlive = true;
         }
-    }
-    
-    if (close(fd) == -1) {
-        perror("Error with closing acces to shared memory\n.");
-        exit(-1);
     }
     
     if (leftAlive == false && rightAlive == false) {
@@ -130,28 +103,15 @@ int gameResult(int N) {
 }
 
 void Shoot(int N, int team, int pid) {
-    int fd = shm_open(fieldName, O_RDWR, 0666);
-    if (fd == -1) {
-        perror("Error with opening field shm_open.");
-        exit(-1);
-    }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
     while (1) {
         // На всякий случай проверяем, что игра еще не завершилась.
         int curStatus = gameResult(N);
         if (curStatus == 1 || curStatus == 2 || curStatus == -1) { // Игра завершилась, очищаем все процессы.
             printf("Процесс-оружия с координатами : (%d, %d) завершился.\n", pid / N, pid - (pid / N) * N);
             if (team == 1) { // Начало координации действий 1-ой команды.
-                sem_post(leftMortars);
+                semctl(leftMortarsID, 0, SETVAL, 0);
             } else if (team == 2) { // Начало координации действий 2 -ой команды.
-                sem_post(rightMortars);
+                semctl(rightMortarsID, 0, SETVAL, 0);
             }
             
             exit(0);
@@ -161,34 +121,34 @@ void Shoot(int N, int team, int pid) {
         int jShoot = rand() % N;
         
         // Цель уже уничтожена.
-        if (addr[iShoot * N + jShoot].status == -1) {
+        if (field[iShoot * N + jShoot].status == -1) {
             continue;
         }
         
         // Пытаемся выстрелить в тиммейта.
-        if (addr[iShoot * N + jShoot].status == team) {
+        if (field[iShoot * N + jShoot].status == team) {
             continue;
         }
         
-        if (addr[iShoot * N + jShoot].status > 0) {
-            sem_wait(printData); // Блокирую потоки, для корректного вывода информации.
+        if (field[iShoot * N + jShoot].status > 0) {
+            wait_semaphore(printDataID); // Блокирую потоки, для корректного вывода информации.
             printf("Оружие с координатами : (%d, %d), убило процесс с координатами : (%d, %d).\n", pid / N, pid - (pid / N) * N, iShoot, jShoot);
-            sem_post(printData); // Разблокирую все потоки.
+            semctl(printDataID, 0, SETVAL, 0); // Разблокирую все потоки.
         } else {
-            sem_wait(printData); // Блокирую потоки, для корректного вывода информации.
+            wait_semaphore(printDataID); // Блокирую потоки, для корректного вывода информации.
             printf("Оружие с координатами : (%d, %d) уничтожило пустую клетку c координатами : (%d, %d).\n", pid / N, pid - (pid / N) * N, iShoot, jShoot);
-            sem_post(printData); // Разблокирую все потоки.
+            semctl(printDataID, 0, SETVAL, 0); // Разблокирую все потоки.
         }
         
-        addr[iShoot * N + jShoot].status = -1;
+        field[iShoot * N + jShoot].status = -1;
         break;
     }
     
     // Оружие выстрелило и ушло в перезарядку, затем оно перезарядится и будет снова готово к стрельбе, координируясь с командой.
     if (team == 1) { // Начало координации действий 1-ой команды.
-        sem_post(leftMortars);
+        semctl(leftMortarsID, 0, SETVAL, 0);
     } else if (team == 2) { // Начало координации действий 2 -ой команды.
-        sem_post(rightMortars);
+        semctl(rightMortarsID, 0, SETVAL, 0);
     }
     
     if (isExist(N, pid) == 0) {
@@ -201,33 +161,13 @@ void Shoot(int N, int team, int pid) {
 }
 
 void printField(int N) {
-    //shm_unlink(field);
-    int fd = shm_open(fieldName, O_RDWR, 0666);
-    if (fd == -1) {
-        perror("Error with opening field shm_open.");
-        exit(-1);
-    }
-    
-    size_t size = N * N * sizeof(struct Cell);
-    struct Cell *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) {
-        perror("Error with mmap");
-        exit(-1);
-    }
-    
     bool leftAlive = false, rightAlive = false;
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
-            printf("%d", addr[i * N + j].pid);
+            printf("%d", field[i * N + j].pid);
         }
         printf("\n");
     }
-    
-    if (close(fd) == -1) {
-        perror("Error with closing acces to shared memory\n.");
-        exit(-1);
-    }
-    
 }
 
 int main(int argc, char *argv[])
@@ -241,49 +181,67 @@ int main(int argc, char *argv[])
     int team = atoi(argv[2]);
     int coord = atoi(argv[3]);
 
+    key_t shm_key = ftok("/tmp", 1200);
+    field_fd  = shmget(shm_key, sizeof(struct Cell), 0666);
+    if (field_fd == -1) {
+        perror("shmget error");
+        exit(-1);
+    }
+
+    field = shmat(field_fd, NULL, 0);
+    if (field == (void*)-1) {
+        perror("shmat error");
+        exit(-1);
+    }
+    
     loadPrintData();
     loadLeftMortars();
     loadRightMortars();
     
-    sem_wait(printData);
+    wait_semaphore(printDataID);
     printf("Процесс-оружие с координатами: (%d, %d) и командой: %d - активировано.\n", coord / N, coord - (coord / N) * N, team);
-    sem_post(printData);
+    semctl(printDataID, 0, SETVAL, 0);
     
-    sleep(1);
+    wait_semaphore(printDataID);
+    printField(N);
+    sleep(5);
+    semctl(printDataID, 0, SETVAL, 0);
+    
+    sleep(5);
     srand(time(NULL)); // для рандомной генерации.
     while (true) {
         if (isExist(N, coord) == 0) {
-            sem_wait(printData);
+            wait_semaphore(printDataID);
             printf("Процесс-оружие с координатами: (%d, %d) завершился.\n", coord / N, coord - (coord / N) * N);
-            sem_post(printData);
+            semctl(printDataID, 0, SETVAL, 0);
             exit(0);
         }
         
         // С помощью семафоров иметирую координацию пушек(стреляет одновременно только 1 оружие каждой команды).
         if (team == 1) { // Начало координации действий 1-ой команды.
-            sem_wait(leftMortars);
+            wait_semaphore(leftMortarsID);
         } else if (team == 2) { // Начало координации действий 2 -ой команды.
-            sem_wait(rightMortars);
+            wait_semaphore(rightMortarsID);
         }
         
         int curStatus = gameResult(N);
         if (curStatus == 1 || curStatus == 2 || curStatus == -1) { // Игра завершилась, очищаем все процессы.
-            sem_wait(printData);
+            wait_semaphore(printDataID);
             printf("Процесс-оружие с координатами: (%d, %d) завершился.\n", coord / N, coord - (coord / N) * N);
-            sem_post(printData);
+            semctl(printDataID, 0, SETVAL, 0);
             
             if (team == 1) { // Начало координации действий 1-ой команды.
-                sem_post(leftMortars);
+                semctl(leftMortarsID, 0, SETVAL, 0);
             } else if (team == 2) { // Начало координации действий 2 -ой команды.
-                sem_post(rightMortars);
+                semctl(rightMortarsID, 0, SETVAL, 0);
             }
             
             exit(0);
         }
         
-        sem_wait(printData);
+        wait_semaphore(printDataID);
         printf("Оружие с координатами : (%d, %d), команда : %d готовится к выстрелу.\n", coord / N, coord - (coord / N) * N, team);
-        sem_post(printData);
+        semctl(printDataID, 0, SETVAL, 0);
         
         // Поидее, если (team == -1), то мы сюда никогда не попадем, т.к. это значит, что процесс уже убит, но с чем черт не шутит...
         if (team != -1) {
